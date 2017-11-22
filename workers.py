@@ -18,7 +18,7 @@ import os
 
 import utils
 
-POOL = redis.ConnectionPool(host=config.redis_host, port=config.redis_port, db=config.redis_db)
+POOL = redis.ConnectionPool(host=config.redis_host, port=config.redis_port, password=config.redis_password, db=config.redis_db)
 
 
 def grade_submission(data, _context):
@@ -76,6 +76,13 @@ def job_execution_wrapper(data):
     # Register Job Running event
     _update_job_event(_context, job_running_template(_context['data_sequence_no'], job.id))
     result = {}
+    
+    "Challenge End notification"
+    _error_object = job_error_template(job.id, "Challenge has eneded. The results will be announced after all the container are evaluated")
+    _update_job_event(_context, job_error_template(job.id, result))
+    result = _error_object
+    return result
+    
     try:
         if data["function_name"] == "grade_submission":
             grade_submission(data["data"], _context)
